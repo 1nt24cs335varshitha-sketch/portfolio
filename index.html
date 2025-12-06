@@ -1,82 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubbon Park Flower Show</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gaming Suggestions — Pick a Game</title>
+<style>
+  :root{
+    --bg1:#0f172a;
+    --card:#0b1220;
+    --accent1:#7c3aed;
+    --accent2:#06b6d4;
+    --glass: rgba(255,255,255,0.04);
+  }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, Arial, sans-serif;
+    background: radial-gradient(circle at 10% 10%, #06102a 0%, #071228 25%, var(--bg1) 100%);
+    color:#e6eef8;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px;
+  }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
-            text-align: center;
-            padding: 50px;
-        }
+  .app {
+    width:100%;
+    max-width:960px;
+    border-radius:14px;
+    padding:24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: 0 6px 30px rgba(2,6,23,0.6);
+    backdrop-filter: blur(6px);
+  }
 
-        h1 {
-            font-size: 40px;
-            color: #4a148c;
-            text-shadow: 2px 2px #ffffffaa;
-        }
+  header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .logo{
+    width:56px;
+    height:56px;
+    border-radius:10px;
+    background: linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:20px;
+    color:white;
+    box-shadow: 0 6px 20px rgba(124,58,237,0.18);
+  }
+  h1{ margin:0; font-size:20px; letter-spacing:0.2px; }
+  p.lead{ margin:4px 0 0 0; color:#bcd3ea; font-size:13px }
 
-        .box {
-            background: #ffffffcc;
-            width: 350px;
-            margin: auto;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-        }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:16px;
+    margin-top:18px;
+  }
 
-        select, button {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.04);
+    padding:14px;
+    border-radius:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  .game-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .badge{
+    min-width:42px;
+    height:42px;
+    border-radius:8px;
+    background:var(--glass);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:#fff;
+    font-size:14px;
+    box-shadow: inset 0 -6px 18px rgba(0,0,0,0.35);
+  }
+  h2{ font-size:16px; margin:0; }
+  .meta{ color:#9fb8d9; font-size:12px; margin-top:6px }
 
-        button {
-            background: #7b1fa2;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+  .desc{ margin-top:12px; font-size:14px; color:#dceffd; min-height:56px }
+  .actions{ display:flex; gap:8px; margin-top:14px; align-items:center }
 
-        #result {
-            margin-top: 15px;
-            font-size: 22px;
-            font-weight: bold;
-            color: #1a237e;
-        }
-    </style>
+  .btn{
+    padding:8px 12px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    color:white;
+  }
+  .btn.secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    color:#d8efff;
+    font-weight:600;
+  }
+
+  footer{
+    margin-top:18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#9fb8d9;
+    font-size:13px;
+  }
+
+  /* small responsive tweaks */
+  @media (max-width:480px){
+    header{ gap:10px }
+    .logo{ width:48px; height:48px; font-size:18px }
+  }
+</style>
 </head>
-
 <body>
+  <div class="app" role="main">
+    <header>
+      <div class="logo">GG</div>
+      <div>
+        <h1>Gaming Suggestions</h1>
+        <p class="lead">Hand-picked popular games across genres — click a card for more info or to visit the game's page.</p>
+      </div>
+    </header>
 
-    <h1>Cubbon Park Flower Show</h1>
+    <section class="grid" aria-label="game suggestions">
+      <!-- Elden Ring -->
+      <article class="card" data-game="elden">
+        <div class="game-title">
+          <div class="badge">ER</div>
+          <div>
+            <h2>Elden Ring</h2>
+            <div class="meta">Action RPG — FromSoftware</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-elden">Open-world action RPG with deep combat, exploration and lore. Challenging bosses and rich atmosphere.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('elden')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('elden')">Toggle short description</button>
+        </div>
+      </article>
 
-    <div class="box">
-        <label>Select Gender:</label><br>
+      <!-- Minecraft -->
+      <article class="card" data-game="minecraft">
+        <div class="game-title">
+          <div class="badge">MC</div>
+          <div>
+            <h2>Minecraft</h2>
+            <div class="meta">Sandbox / Creative — Mojang</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-minecraft">Sandbox building game where you craft, build and survive — strong creative and modding community.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('minecraft')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('minecraft')">Toggle short description</button>
+        </div>
+      </article>
 
-        <select id="gender">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-        </select>
+      <!-- Fortnite -->
+      <article class="card" data-game="fortnite">
+        <div class="game-title">
+          <div class="badge">FN</div>
+          <div>
+            <h2>Fortnite</h2>
+            <div class="meta">Battle Royale / Live service — Epic Games</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-fortnite">Fast-paced battle royale with building mechanics, live events and cross-platform play.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('fortnite')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('fortnite')">Toggle short description</button>
+        </div>
+      </article>
 
-        <br>
+      <!-- Valorant -->
+      <article class="card" data-game="valorant">
+        <div class="game-title">
+          <div class="badge">VA</div>
+          <div>
+            <h2>Valorant</h2>
+            <div class="meta">Tactical hero shooter — Riot Games</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-valorant">Team-based tactical shooter with unique agent abilities and a competitive esports scene.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('valorant')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('valorant')">Toggle short description</button>
+        </div>
+      </article>
 
-        <button onclick="checkFee()">Check Entry Fee</button>
+      <!-- Among Us -->
+      <article class="card" data-game="amongus">
+        <div class="game-title">
+          <div class="badge">AU</div>
+          <div>
+            <h2>Among Us</h2>
+            <div class="meta">Social deduction — Innersloth</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-amongus">Party-style social deduction where crewmates find impostors — great for casual groups.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('amongus')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('amongus')">Toggle short description</button>
+        </div>
+      </article>
 
-        <div id="result"></div>
-    </div>
+      <!-- Rocket League -->
+      <article class="card" data-game="rocket">
+        <div class="game-title">
+          <div class="badge">RL</div>
+          <div>
+            <h2>Rocket League</h2>
+            <div class="meta">Vehicular soccer — Psyonix</div>
+          </div>
+        </div>
+        <div class="desc" id="desc-rocket">High-skill vehicular-soccer hybrid — short matches, great for competitive fun and casual play.</div>
+        <div class="actions">
+          <button class="btn" onclick="openLink('rocket')">Open page</button>
+          <button class="btn secondary" onclick="toggleDesc('rocket')">Toggle short description</button>
+        </div>
+      </article>
+    </section>
 
-    <script>
-        function checkFee() {
-            let g = document.getElementById("gender").value;
-            let fee = (g === "male") ? 30 : 20;
-            document.getElementById("result").innerHTML = "Entry Fee: ₹ " + fee;
-        }
-    </script>
+    <footer>
+      <div>Tip: click "Open page" to learn more about each game.</div>
+      <div style="opacity:0.9">Made with ❤ — quick game picks</div>
+    </footer>
+  </div>
 
+<script>
+  const LINKS = {
+    elden: "https://en.wikipedia.org/wiki/Elden_Ring",
+    minecraft: "https://en.wikipedia.org/wiki/Minecraft",
+    fortnite: "https://en.wikipedia.org/wiki/Fortnite",
+    valorant: "https://en.wikipedia.org/wiki/Valorant",
+    amongus: "https://en.wikipedia.org/wiki/Among_Us",
+    rocket: "https://en.wikipedia.org/wiki/Rocket_League"
+  };
+
+  function openLink(key){
+    const url = LINKS[key];
+    if(url) window.open(url, "_blank");
+    else alert("No link available");
+  }
+
+  function toggleDesc(key){
+    const el = document.getElementById("desc-" + key);
+    if(!el) return;
+    if(el.dataset.hidden === "1"){
+      el.textContent = el.dataset.orig;
+      el.dataset.hidden = "0";
+    } else {
+      // store original then toggle to a shorter blurb
+      if(!el.dataset.orig) el.dataset.orig = el.textContent;
+      el.textContent = el.textContent.split(".")[0] + ".";
+      el.dataset.hidden = "1";
+    }
+  }
+</script>
 </body>
 </html>
