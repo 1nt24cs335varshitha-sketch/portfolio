@@ -1,275 +1,470 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gaming Suggestions — Pick a Game</title>
+<title>Mini Runner — Play!</title>
 <style>
   :root{
-    --bg1:#0f172a;
-    --card:#0b1220;
-    --accent1:#7c3aed;
-    --accent2:#06b6d4;
-    --glass: rgba(255,255,255,0.04);
+    --bg1:#0f1b2d; --bg2:#1b2b45; --accent:#f49fb1;
   }
-  body{
-    margin:0;
-    font-family: Inter, system-ui, Arial, sans-serif;
-    background: radial-gradient(circle at 10% 10%, #06102a 0%, #071228 25%, var(--bg1) 100%);
-    color:#e6eef8;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:32px;
-  }
-
-  .app {
-    width:100%;
-    max-width:960px;
-    border-radius:14px;
-    padding:24px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    box-shadow: 0 6px 30px rgba(2,6,23,0.6);
-    backdrop-filter: blur(6px);
-  }
-
-  header{
-    display:flex;
-    align-items:center;
-    gap:16px;
-    margin-bottom:18px;
-  }
-  .logo{
-    width:56px;
-    height:56px;
-    border-radius:10px;
-    background: linear-gradient(135deg,var(--accent1),var(--accent2));
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:700;
-    font-size:20px;
-    color:white;
-    box-shadow: 0 6px 20px rgba(124,58,237,0.18);
-  }
-  h1{ margin:0; font-size:20px; letter-spacing:0.2px; }
-  p.lead{ margin:4px 0 0 0; color:#bcd3ea; font-size:13px }
-
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:16px;
-    margin-top:18px;
-  }
-
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.04);
-    padding:14px;
-    border-radius:12px;
-    position:relative;
-    overflow:hidden;
-  }
-  .game-title{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .badge{
-    min-width:42px;
-    height:42px;
-    border-radius:8px;
-    background:var(--glass);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:700;
-    color:#fff;
-    font-size:14px;
-    box-shadow: inset 0 -6px 18px rgba(0,0,0,0.35);
-  }
-  h2{ font-size:16px; margin:0; }
-  .meta{ color:#9fb8d9; font-size:12px; margin-top:6px }
-
-  .desc{ margin-top:12px; font-size:14px; color:#dceffd; min-height:56px }
-  .actions{ display:flex; gap:8px; margin-top:14px; align-items:center }
-
-  .btn{
-    padding:8px 12px;
-    border-radius:10px;
-    border:none;
-    cursor:pointer;
-    font-weight:600;
-    background: linear-gradient(90deg,var(--accent1),var(--accent2));
-    color:white;
-  }
-  .btn.secondary{
-    background:transparent;
-    border:1px solid rgba(255,255,255,0.06);
-    color:#d8efff;
-    font-weight:600;
-  }
-
-  footer{
-    margin-top:18px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    color:#9fb8d9;
-    font-size:13px;
-  }
-
-  /* small responsive tweaks */
-  @media (max-width:480px){
-    header{ gap:10px }
-    .logo{ width:48px; height:48px; font-size:18px }
-  }
+  html,body{height:100%; margin:0; font-family:system-ui,Segoe UI,Arial; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:#fff}
+  .wrap{min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px}
+  canvas{background: linear-gradient(180deg,#8dd3ff00,#7ec8ff14); border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width:100%; max-width:900px; height:auto; display:block;}
+  .ui{max-width:900px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px}
+  .score{font-size:18px; background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:10px;}
+  .controls{font-size:13px; opacity:0.9}
+  .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none}
+  .panel{pointer-events:auto; background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03)); border-radius:12px; padding:18px; text-align:center; color:#001; min-width:280px}
+  button{background:var(--accent); color:#111; border:none; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer}
+  small{display:block; margin-top:8px; color:rgba(0,0,0,0.6)}
+  @media (max-width:520px){ .controls{font-size:12px} }
 </style>
 </head>
 <body>
-  <div class="app" role="main">
-    <header>
-      <div class="logo">GG</div>
-      <div>
-        <h1>Gaming Suggestions</h1>
-        <p class="lead">Hand-picked popular games across genres — click a card for more info or to visit the game's page.</p>
-      </div>
-    </header>
+  <div class="wrap">
+    <div class="ui">
+      <div class="score">Score: <span id="score">0</span></div>
+      <div class="controls">Controls: ← → (change lane) • ↑ jump • ↓ slide • Swipe on mobile</div>
+    </div>
 
-    <section class="grid" aria-label="game suggestions">
-      <!-- Elden Ring -->
-      <article class="card" data-game="elden">
-        <div class="game-title">
-          <div class="badge">ER</div>
-          <div>
-            <h2>Elden Ring</h2>
-            <div class="meta">Action RPG — FromSoftware</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-elden">Open-world action RPG with deep combat, exploration and lore. Challenging bosses and rich atmosphere.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('elden')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('elden')">Toggle short description</button>
-        </div>
-      </article>
+    <canvas id="game" width="900" height="450"></canvas>
 
-      <!-- Minecraft -->
-      <article class="card" data-game="minecraft">
-        <div class="game-title">
-          <div class="badge">MC</div>
-          <div>
-            <h2>Minecraft</h2>
-            <div class="meta">Sandbox / Creative — Mojang</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-minecraft">Sandbox building game where you craft, build and survive — strong creative and modding community.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('minecraft')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('minecraft')">Toggle short description</button>
-        </div>
-      </article>
+    <div style="max-width:900px; width:100%; display:flex; justify-content:center; gap:12px">
+      <button id="startBtn">Start Game</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="helpBtn">Help / Restart</button>
+    </div>
+  </div>
 
-      <!-- Fortnite -->
-      <article class="card" data-game="fortnite">
-        <div class="game-title">
-          <div class="badge">FN</div>
-          <div>
-            <h2>Fortnite</h2>
-            <div class="meta">Battle Royale / Live service — Epic Games</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-fortnite">Fast-paced battle royale with building mechanics, live events and cross-platform play.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('fortnite')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('fortnite')">Toggle short description</button>
-        </div>
-      </article>
-
-      <!-- Valorant -->
-      <article class="card" data-game="valorant">
-        <div class="game-title">
-          <div class="badge">VA</div>
-          <div>
-            <h2>Valorant</h2>
-            <div class="meta">Tactical hero shooter — Riot Games</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-valorant">Team-based tactical shooter with unique agent abilities and a competitive esports scene.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('valorant')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('valorant')">Toggle short description</button>
-        </div>
-      </article>
-
-      <!-- Among Us -->
-      <article class="card" data-game="amongus">
-        <div class="game-title">
-          <div class="badge">AU</div>
-          <div>
-            <h2>Among Us</h2>
-            <div class="meta">Social deduction — Innersloth</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-amongus">Party-style social deduction where crewmates find impostors — great for casual groups.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('amongus')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('amongus')">Toggle short description</button>
-        </div>
-      </article>
-
-      <!-- Rocket League -->
-      <article class="card" data-game="rocket">
-        <div class="game-title">
-          <div class="badge">RL</div>
-          <div>
-            <h2>Rocket League</h2>
-            <div class="meta">Vehicular soccer — Psyonix</div>
-          </div>
-        </div>
-        <div class="desc" id="desc-rocket">High-skill vehicular-soccer hybrid — short matches, great for competitive fun and casual play.</div>
-        <div class="actions">
-          <button class="btn" onclick="openLink('rocket')">Open page</button>
-          <button class="btn secondary" onclick="toggleDesc('rocket')">Toggle short description</button>
-        </div>
-      </article>
-    </section>
-
-    <footer>
-      <div>Tip: click "Open page" to learn more about each game.</div>
-      <div style="opacity:0.9">Made with ❤ — quick game picks</div>
-    </footer>
+  <div class="overlay" id="overlay" style="display:none">
+    <div class="panel" id="panel">
+      <h2 id="panelTitle">Paused</h2>
+      <p id="panelText">Game paused.</p>
+      <button id="panelBtn">Resume</button>
+      <small id="panelHint">Tip: Avoid obstacles by switching lanes or jumping over them.</small>
+    </div>
   </div>
 
 <script>
-  const LINKS = {
-    elden: "https://en.wikipedia.org/wiki/Elden_Ring",
-    minecraft: "https://en.wikipedia.org/wiki/Minecraft",
-    fortnite: "https://en.wikipedia.org/wiki/Fortnite",
-    valorant: "https://en.wikipedia.org/wiki/Valorant",
-    amongus: "https://en.wikipedia.org/wiki/Among_Us",
-    rocket: "https://en.wikipedia.org/wiki/Rocket_League"
-  };
+/* ===== Mini Runner — Canvas game =====
+   - 3 lanes (left, center, right)
+   - Arrow keys: left/right to change lane, up to jump, down to slide
+   - Touch swipe supported (left/right/up/down)
+   - Score increases with distance; speed increases over time
+   - Collisions with obstacles end the run
+*/
 
-  function openLink(key){
-    const url = LINKS[key];
-    if(url) window.open(url, "_blank");
-    else alert("No link available");
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+let W = canvas.width, H = canvas.height;
+function resizeCanvasToDisplaySize(){
+  // keep internal size fixed but scale CSS - already set for crispness
+}
+resizeCanvasToDisplaySize();
+
+/* Game variables */
+let running = false;
+let paused = false;
+let score = 0;
+let speed = 4;        // base speed (how fast obstacles move)
+let spawnTimer = 0;
+let spawnInterval = 90; // frames
+let obstacles = [];
+let frame = 0;
+
+/* Lanes x positions */
+const lanes = [W*0.25, W*0.5, W*0.75]; // three lanes
+const groundY = H - 80;
+
+/* Player */
+const player = {
+  lane: 1, // 0-left,1-center,2-right
+  width: 48,
+  height: 64,
+  x: lanes[1] - 24,
+  y: groundY - 64,
+  vy: 0,
+  gravity: 0.9,
+  jumping: false,
+  slide: false,
+  slideTimer: 0
+};
+
+function resetGame(){
+  running = false;
+  paused = false;
+  score = 0;
+  speed = 4;
+  spawnTimer = 0;
+  obstacles = [];
+  frame = 0;
+  player.lane = 1;
+  player.vy = 0;
+  player.jumping = false;
+  player.slide = false;
+  player.slideTimer = 0;
+  updatePlayerX();
+  updateScoreDisplay();
+}
+
+/* Helpers */
+function updatePlayerX(){
+  player.x = lanes[player.lane] - player.width/2;
+}
+
+/* Input handling */
+document.addEventListener('keydown', (e)=>{
+  if(!running) return;
+  if(paused && e.key !== 'Escape') return;
+  if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') changeLane(-1);
+  if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') changeLane(1);
+  if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') startJump();
+  if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') startSlide();
+  if(e.key === 'Escape') togglePause();
+});
+
+function changeLane(dir){
+  player.lane = Math.max(0, Math.min(2, player.lane + dir));
+  updatePlayerX();
+}
+
+function startJump(){
+  if(player.jumping || player.slide) return;
+  player.vy = -14;
+  player.jumping = true;
+}
+
+function startSlide(){
+  if(player.jumping || player.slide) return;
+  player.slide = true;
+  player.slideTimer = 40; // frames
+}
+
+/* Touch (swipe) control for mobile */
+let touchStartX=0, touchStartY=0, touchStartTime=0;
+canvas.addEventListener('touchstart', (e)=>{
+  if(e.touches.length>0){
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }
+}, {passive:true});
+canvas.addEventListener('touchend', (e)=>{
+  const dx = (e.changedTouches[0].clientX - touchStartX);
+  const dy = (e.changedTouches[0].clientY - touchStartY);
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+  if(Math.max(adx,ady) < 20) {
+    // tap = jump
+    startJump();
+    return;
+  }
+  if(adx > ady){
+    if(dx > 0) changeLane(1); else changeLane(-1);
+  } else {
+    if(dy > 0) startSlide(); else startJump();
+  }
+}, {passive:true});
+
+/* Obstacles */
+function spawnObstacle(){
+  const lane = Math.floor(Math.random()*3);
+  const type = Math.random() < 0.7 ? 'block' : 'tall'; // block (can jump), tall (must switch lane)
+  const size = type === 'block' ? {w:40,h:40} : {w:40,h:90};
+  const obst = {
+    lane,
+    x: W + 60,
+    y: groundY - size.h,
+    w: size.w,
+    h: size.h,
+    passed: false,
+    type
+  };
+  obstacles.push(obst);
+}
+
+/* Collision detection */
+function collideRect(a,b){
+  return !(a.x + a.width < b.x || a.x > b.x + b.w || a.y + a.height < b.y || a.y > b.y + b.h);
+}
+
+/* Game loop */
+function update(){
+  if(!running || paused) return;
+
+  frame++;
+  // increase difficulty gradually
+  if(frame % 600 === 0) speed += 0.6;
+  // spawn obstacles
+  spawnTimer++;
+  if(spawnTimer > spawnInterval){
+    spawnTimer = 0;
+    // slightly randomize interval
+    spawnInterval = Math.max(45, Math.floor(70 - Math.min(30, score/200)));
+    spawnObstacle();
   }
 
-  function toggleDesc(key){
-    const el = document.getElementById("desc-" + key);
-    if(!el) return;
-    if(el.dataset.hidden === "1"){
-      el.textContent = el.dataset.orig;
-      el.dataset.hidden = "0";
-    } else {
-      // store original then toggle to a shorter blurb
-      if(!el.dataset.orig) el.dataset.orig = el.textContent;
-      el.textContent = el.textContent.split(".")[0] + ".";
-      el.dataset.hidden = "1";
+  // update player vertical motion
+  if(player.jumping){
+    player.vy += player.gravity;
+    player.y += player.vy;
+    if(player.y >= groundY - player.height){
+      player.y = groundY - player.height;
+      player.vy = 0;
+      player.jumping = false;
     }
   }
+  // slide timer
+  if(player.slide){
+    player.slideTimer--;
+    if(player.slideTimer <= 0) player.slide = false;
+  }
+
+  // move obstacles
+  for(let i=obstacles.length-1;i>=0;i--){
+    obstacles[i].x -= speed + (score/1000); // small speed boost from score
+    // mark passed for scoring
+    if(!obstacles[i].passed && obstacles[i].x + obstacles[i].w < player.x){
+      obstacles[i].passed = true;
+      score += 10; // pass bonus
+      updateScoreDisplay();
+    }
+    // remove off-screen
+    if(obstacles[i].x + obstacles[i].w < -100) obstacles.splice(i,1);
+  }
+
+  // continuous score increase
+  if(frame % 6 === 0){ score += 1; updateScoreDisplay(); }
+
+  // collision check (AABB)
+  const pBox = {
+    x: player.x,
+    y: player.y + (player.slide ? player.height*0.5 : 0), // sliding reduces height by half visually
+    width: player.width,
+    height: player.slide ? player.height*0.5 : player.height
+  };
+
+  for(const o of obstacles){
+    const oBox = {x:o.x, y:o.y, w:o.w, h:o.h};
+    if(collideRect({x:pBox.x, y:pBox.y, width:pBox.width, height:pBox.height}, {x:o.x, y:o.y, w:o.w, h:o.h})){
+      // collision — end game
+      gameOver();
+      return;
+    }
+  }
+}
+
+/* Drawing */
+function draw(){
+  // clear
+  ctx.clearRect(0,0,W,H);
+
+  // background parallax
+  drawBackground();
+
+  // ground
+  ctx.fillStyle = '#2b3b56';
+  ctx.fillRect(0, groundY, W, H-groundY);
+
+  // lane markers
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 2;
+  for(let i=0;i<3;i++){
+    const lx = lanes[i];
+    ctx.beginPath();
+    ctx.moveTo(lx, groundY);
+    ctx.lineTo(lx, groundY+40);
+    ctx.stroke();
+  }
+
+  // draw player (rounded)
+  drawPlayer();
+
+  // draw obstacles
+  for(const o of obstacles){
+    const color = o.type === 'block' ? '#ff7a7a' : '#ffa64d';
+    ctx.fillStyle = color;
+    roundRect(ctx, o.x, o.y, o.w, o.h, 6, true, false);
+    // small shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fillRect(o.x+6, groundY, o.w-12, 6);
+  }
+
+  // HUD score (drawn in DOM but also nice on canvas)
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(12,12,160,36);
+  ctx.fillStyle = '#fff';
+  ctx.font = '18px system-ui, Arial';
+  ctx.fillText('Score: ' + score, 20, 36);
+}
+
+function drawBackground(){
+  // sky gradient stripes to give motion
+  const t = frame * 0.6;
+  for(let i=0;i<6;i++){
+    const x = (i*250 - (t % 250));
+    ctx.fillStyle = i%2===0 ? 'rgba(124,58,237,0.06)' : 'rgba(6,182,212,0.04)';
+    ctx.fillRect(x, 0, 140, groundY);
+  }
+  // distant hills
+  ctx.fillStyle = '#12314a';
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  ctx.quadraticCurveTo(W*0.25, groundY-80, W*0.5, groundY-30);
+  ctx.quadraticCurveTo(W*0.75, groundY+20, W, groundY-60);
+  ctx.lineTo(W,0);
+  ctx.lineTo(0,0);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawPlayer(){
+  // body color & simple running animation (bob)
+  const bob = Math.sin(frame/6) * (player.jumping?1:2);
+  const px = player.x, py = player.y + bob;
+  const pW = player.width;
+  const pH = player.height * (player.slide ? 0.55 : 1);
+
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(px + pW/2, groundY + 6, pW*0.55, 8, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // body
+  ctx.fillStyle = '#4ade80';
+  roundRect(ctx, px, py, pW, pH, 8, true, false);
+
+  // face / detail
+  ctx.fillStyle = '#072a1a';
+  ctx.fillRect(px + 10, py + 10, 12, 12);
+  // small stripe
+  ctx.fillStyle = '#d1fae5';
+  ctx.fillRect(px + 8, py + pH - 12, pW - 16, 6);
+}
+
+/* Utilities */
+function roundRect(ctx, x, y, w, h, r, fill, stroke){
+  if (typeof stroke === 'undefined'){ stroke = true; }
+  if (typeof r === 'undefined'){ r = 5; }
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+  if(fill) ctx.fill();
+  if(stroke) ctx.stroke();
+}
+
+function updateScoreDisplay(){
+  document.getElementById('score').textContent = score;
+}
+
+/* Game over / pause / start */
+function gameOver(){
+  running = false;
+  showPanel('Game Over', 'Your score: ' + score, 'Restart', ()=>startGame(true));
+}
+
+function startGame(restart=false){
+  if(restart) resetGame();
+  running = true;
+  paused = false;
+  hidePanel();
+  loop();
+}
+
+function togglePause(){
+  if(!running) return;
+  paused = !paused;
+  if(paused) showPanel('Paused', 'Game is paused', 'Resume', ()=>{ paused=false; hidePanel(); loop(); });
+  else hidePanel();
+}
+
+/* Panel UI */
+const overlay = document.getElementById('overlay');
+const panelTitle = document.getElementById('panelTitle');
+const panelText = document.getElementById('panelText');
+const panelBtn = document.getElementById('panelBtn');
+
+function showPanel(title, text, btnText, btnAction){
+  panelTitle.textContent = title;
+  panelText.textContent = text;
+  panelBtn.textContent = btnText;
+  panelBtn.onclick = ()=>{ btnAction(); };
+  overlay.style.display = 'flex';
+}
+
+function hidePanel(){ overlay.style.display = 'none'; }
+
+/* Buttons */
+document.getElementById('startBtn').onclick = ()=>{
+  if(!running) startGame(true);
+};
+document.getElementById('pauseBtn').onclick = togglePause;
+document.getElementById('helpBtn').onclick = ()=> {
+  if(!running) startGame(true);
+  showPanel('How to play', 'Use ← → to change lanes, ↑ to jump, ↓ to slide. Swipe on mobile to control. Avoid obstacles and survive as long as possible!', 'Got it', ()=>{ hidePanel(); });
+};
+
+/* Main loop with RAF */
+let rafId = null;
+function loop(){
+  if(!running || paused) return;
+  update();
+  draw();
+  rafId = requestAnimationFrame(loop);
+  frame++;
+}
+
+/* Initial draw */
+resetGame();
+draw();
+
+/* Start button helper */
+document.getElementById('startBtn').textContent = 'Start Game';
+
+/* Make sure canvas is crisp on high-DPI */
+function scaleCanvasForDPI(){
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.floor(canvas.clientWidth * dpr) || canvas.height !== Math.floor(canvas.clientHeight * dpr)) {
+    // preserve CSS size, change internal resolution
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.floor(rect.width * dpr);
+    const h = Math.floor(rect.height * dpr);
+    canvas.width = w; canvas.height = h;
+    W = canvas.width; H = canvas.height;
+  }
+  // recalc lanes & ground
+  lanes[0] = W*0.25; lanes[1] = W*0.5; lanes[2] = W*0.75;
+}
+function onResize(){
+  // Set CSS width/height consistent; keep internal resolution for crispness
+  const containerWidth = Math.min(window.innerWidth - 40, 900);
+  canvas.style.width = containerWidth + 'px';
+  canvas.style.height = (containerWidth * 0.5) + 'px';
+  scaleCanvasForDPI();
+  // recalc ground & player
+  groundY = canvas.height - 80;
+  player.y = groundY - player.height;
+  updatePlayerX();
+  draw();
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+/* ensure game loop runs while running */
+(function steadyLoop(){
+  if(running && !paused){
+    // ensure draw even when RAF paused (fallback)
+    draw();
+  }
+  setTimeout(steadyLoop, 1000/30);
+})();
+
 </script>
 </body>
 </html>
