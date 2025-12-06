@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubbon Park Flower Show</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            font-size: 40px;
+            color: #4a148c;
+            text-shadow: 2px 2px #ffffffaa;
+        }
+
+        .box {
+            background: #ffffffcc;
+            width: 350px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #7b1fa2;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a237e;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Cubbon Park Flower Show</h1>
+
+    <div class="box">
+        <label>Select Gender:</label><br>
+
+        <select id="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+
+        <br>
+
+        <button onclick="checkFee()">Check Entry Fee</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function checkFee() {
+            let g = document.getElementById("gender").value;
+            let fee = (g === "male") ? 30 : 20;
+            document.getElementById("result").innerHTML = "Entry Fee: ₹ " + fee;
+        }
+    </script>
+
+</body>
+</html>
