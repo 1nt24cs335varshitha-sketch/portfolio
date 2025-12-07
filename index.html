@@ -1,130 +1,452 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Talking Tom Clone</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Interactive Talking Tom — Your Voice, Cartoon Animated</title>
+<style>
+  :root{
+    --sky1:#a8e6ff; --sky2:#f7fbff; --house:#ffd59e; --accent:#ff7a7a;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,var(--sky1),var(--sky2));
+    padding:18px;
+  }
+  .scene{
+    width:960px; max-width:95vw; height:640px; position:relative;
+    border-radius:14px; overflow:hidden; box-shadow:0 18px 40px rgba(12,20,40,0.12);
+    background: linear-gradient(180deg,#bfe9ff 0%, #eaf8ff 50%, #fff 100%);
+  }
 
-    <style>
-        body {
-            background: linear-gradient(#8ed6ff, #ffffff);
-            text-align: center;
-            padding-top: 40px;
-            font-family: Arial, sans-serif;
-        }
+  /* clouds */
+  .cloud{ position:absolute; top:28px; width:240px; height:72px; border-radius:72px; background:#fff; opacity:0.95;
+    box-shadow:0 8px 18px rgba(10,20,40,0.06); transform:translateX(-400px); animation:cloudMove linear infinite; }
+  .cloud.c1{ top:40px; left:-260px; animation-duration:72s;}
+  .cloud.c2{ top:86px; left:-160px; width:320px; height:86px; animation-duration:58s; opacity:0.94;}
+  .cloud.c3{ top:10px; left:-220px; width:200px; height:60px; animation-duration:46s; opacity:0.9;}
+  @keyframes cloudMove { to { transform:translateX(1400px); } }
 
-        #tom {
-            width: 300px;
-            transition: transform 0.2s;
-        }
+  /* house */
+  .ground{ position:absolute; left:0; right:0; bottom:0; height:260px; background:linear-gradient(180deg,#f7f5e7,#f0eecf); border-top:4px solid rgba(0,0,0,0.03); }
+  .house{ position:absolute; left:48px; bottom:80px; width:320px; height:220px; background:linear-gradient(180deg,var(--house),#f0b780); border-radius:12px; }
+  .door{ position:absolute; bottom:18px; left:36px; width:90px; height:120px; background:#6b4b32; border-radius:6px; }
+  .window{ position:absolute; top:28px; right:34px; width:78px; height:62px; background:#fff; border-radius:6px; box-shadow: inset 0 0 0 6px rgba(0,160,255,0.06); }
 
-        /* Touch/Click Animation */
-        .shake {
-            animation: shake 0.3s;
-        }
+  /* bubble */
+  .bubble{ position:absolute; bottom:380px; left:28px; min-width:220px; max-width:400px; padding:12px 14px; background:rgba(255,255,255,0.98); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.08); font-size:16px; color:#222; }
+  .status{ font-size:13px; color:#666; margin-top:6px; }
 
-        @keyframes shake {
-            0% { transform: translate(0px, 0px); }
-            25% { transform: translate(-10px, 0px); }
-            50% { transform: translate(10px, 0px); }
-            75% { transform: translate(-10px, 0px); }
-            100% { transform: translate(0px, 0px); }
-        }
+  /* stage area for character */
+  .stage{ position:absolute; right:100px; bottom:24px; width:360px; height:520px; display:flex; align-items:flex-end; justify-content:center; pointer-events:none; }
+  .character-wrap{ position:relative; width:320px; pointer-events:auto; transform-origin:center bottom; transition:transform .16s ease; }
 
-        /* Mouth movement (simple animation) */
-        .talking {
-            filter: brightness(1.2);
-        }
+  /* user's image */
+  #tomImg{ display:block; width:320px; height:auto; border-radius:10px; user-select:none; transform-origin:center bottom; transition:transform .12s ease, filter .12s ease; will-change:transform,filter; }
 
-        #speech {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: white;
-            border-radius: 20px;
-            display: inline-block;
-            min-height: 40px;
-            font-size: 18px;
-            border: 2px solid black;
-        }
+  /* overlays (cartoon mouth, eyes, hands) */
+  .overlay { position:absolute; pointer-events:none; }
 
-        #micBtn {
-            margin-top: 30px;
-            padding: 15px 25px;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 20px;
-            cursor: pointer;
-        }
-    </style>
+  /* approximate positions - adjust later if needed */
+  .eye.left { left:96px; top:116px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.9); transform-origin:center; overflow:hidden; }
+  .eye.right{ left:198px; top:116px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.9); transform-origin:center; overflow:hidden; }
+  .eye .iris{ width:10px; height:10px; background:#3bd04b; border-radius:50%; position:absolute; left:8px; top:7px; transition:transform .08s linear; }
+
+  /* blink */
+  .eye.blinked { transform: scaleY(0.08); transition:transform .08s linear; }
+
+  /* cartoon mouth overlay (Option B) */
+  .mouth { left:140px; top:160px; width:40px; height:22px; border-radius:20px; background:#b64646; transform-origin:center; transition:transform .06s linear, opacity .12s ease; box-shadow: inset 0 -6px 12px rgba(0,0,0,0.08); }
+
+  /* mouth shapes */
+  .mouth.small{ transform:scaleY(0.6) scaleX(1); }
+  .mouth.medium{ transform:scaleY(1.1) scaleX(1.05); }
+  .mouth.big{ transform:scaleY(1.9) scaleX(1.12); }
+
+  /* simple teeth/highlight */
+  .mouth:after{ content:""; position:absolute; left:6px; right:6px; top:6px; height:8px; border-radius:6px; background:rgba(255,255,255,0.12); }
+
+  /* hands (fake) - move on listening */
+  .hand.left{ left:28px; top:236px; width:78px; height:88px; }
+  .hand.right{ left:214px; top:236px; width:78px; height:88px; }
+  .hand .palm{ width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.16); position:absolute; left:18px; top:36px; transform-origin:center; transition:transform .16s ease; }
+
+  /* listening pose: hands near ears + slight scale */
+  .listen .hand.left .palm{ transform: translate(62px,-56px) rotate(-12deg); }
+  .listen .hand.right .palm{ transform: translate(-28px,-56px) rotate(12deg); }
+  .listen #tomImg{ transform: scale(1.02); filter:brightness(1.04); }
+
+  /* angry style */
+  .angry #tomImg{ transform: scale(1.04) rotate(-4deg); filter:contrast(1.06) saturate(1.1); }
+  .angry .mouth{ background:#7b0f0f; transform: scaleY(0.85) translateY(6px); }
+
+  /* fall down */
+  .fallen { animation:fall 1s forwards ease; }
+  @keyframes fall { 0%{ transform: translateY(0) rotate(0deg);} 60%{ transform: translateY(18px) rotate(12deg);} 100%{ transform: translateY(260px) rotate(90deg) scale(.9); opacity:0.95; } }
+
+  /* controls */
+  .controls{ position:absolute; left:28px; bottom:28px; display:flex; gap:10px; align-items:center; }
+  button.action{ padding:10px 14px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; }
+  button.secondary{ background:#fff; border:1px solid rgba(0,0,0,0.06); padding:10px 12px; border-radius:10px; cursor:pointer; }
+
+  /* responsiveness */
+  @media(max-width:920px){ .stage{ right:18px; } .character-wrap{ width:260px;} #tomImg{ width:260px; } .mouth{ left:116px; top:146px; } .eye.left{ left:84px; top:104px; } .eye.right{ left:164px; top:104px; } }
+</style>
 </head>
 <body>
+  <div class="scene" id="scene">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
 
-    <h1>Talking Tom</h1>
+    <div class="ground"></div>
+    <div class="house" aria-hidden="true">
+      <div class="door"></div>
+      <div class="window"></div>
+    </div>
 
-    <!-- Your uploaded image -->
-    <img id="tom" src="talkingtom.jpg">
+    <div class="bubble" id="bubble">
+      Tap the image to interact. Allow mic to record. <div class="status" id="status">Idle</div>
+    </div>
 
-    <div id="speech">Say something…</div>
-    <br>
+    <div class="stage">
+      <div class="character-wrap" id="char">
+        <!-- Your uploaded image - ensure talkingtom.jpg is in same folder -->
+        <img id="tomImg" src="talkingtom.jpg" alt="Talking Tom">
 
-    <button id="micBtn">🎤 Speak</button>
+        <!-- overlays -->
+        <div class="overlay eye left" id="eyeL"><div class="iris" style="width:10px;height:10px;background:#3bd04b;border-radius:50%;position:absolute;left:8px;top:7px;"></div></div>
+        <div class="overlay eye right" id="eyeR"><div class="iris" style="width:10px;height:10px;background:#3bd04b;border-radius:50%;position:absolute;left:8px;top:7px;"></div></div>
 
-    <script>
-        const tom = document.getElementById("tom");
-        const speechBox = document.getElementById("speech");
-        const micBtn = document.getElementById("micBtn");
+        <div class="overlay mouth" id="mouth"></div>
 
-        // --- Click / Touch Reaction ---
-        tom.addEventListener("click", () => {
-            tom.classList.add("shake");
-            setTimeout(() => tom.classList.remove("shake"), 300);
+        <div class="overlay hand left" id="handL"><div class="palm"></div></div>
+        <div class="overlay hand right" id="handR"><div class="palm"></div></div>
+      </div>
+    </div>
 
-            speechBox.innerText = "Hey! You touched me!";
-        });
+    <div class="controls">
+      <button class="action" id="listenBtn">🎤 Listen (record)</button>
+      <button class="secondary" id="playBtn">▶ Play last</button>
+      <button class="secondary" id="resetBtn">↺ Reset</button>
+      <div style="margin-left:8px;color:#333;font-weight:600">Hits: <span id="hitCount">0</span></div>
+    </div>
+  </div>
 
-        // --- Voice Recognition Setup ---
-        let recognition;
-        if ("webkitSpeechRecognition" in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = "en-US";
-            recognition.continuous = false;
-            recognition.interimResults = false;
-        } else {
-            alert("Your browser does not support voice recognition.");
-        }
+<script>
+/* ------------------------------
+   Elements & state
+   ------------------------------ */
+const char = document.getElementById('char');
+const tomImg = document.getElementById('tomImg');
+const eyeL = document.getElementById('eyeL');
+const eyeR = document.getElementById('eyeR');
+const mouth = document.getElementById('mouth');
+const handL = document.getElementById('handL');
+const handR = document.getElementById('handR');
+const bubble = document.getElementById('bubble');
+const status = document.getElementById('status');
+const listenBtn = document.getElementById('listenBtn');
+const playBtn = document.getElementById('playBtn');
+const resetBtn = document.getElementById('resetBtn');
+const hitCountEl = document.getElementById('hitCount');
 
-        // --- Start Listening ---
-        micBtn.onclick = () => {
-            if (!recognition) return;
-            speechBox.innerText = "Listening...";
-            recognition.start();
-        };
+let hitCount = 0;
+let lastHits = [];
+let fallen = false;
 
-        // --- When User Speaks ---
-        recognition.onresult = function(event) {
-            let text = event.results[0][0].transcript;
+/* ------------------------------
+   Automatic blinking
+   ------------------------------ */
+function blink(el, dur=80){
+  el.classList.add('blinked');
+  setTimeout(()=>el.classList.remove('blinked'), dur);
+}
+setInterval(()=> {
+  if(fallen) return;
+  if(Math.random() < 0.6){ blink(eyeL,80); blink(eyeR,80); }
+}, 2600);
 
-            speechBox.innerText = "You said: " + text;
+/* ------------------------------
+   Click / tap reactions (angry / fall)
+   ------------------------------ */
+char.addEventListener('click', (e) => {
+  if(fallen) return;
+  hitCount++;
+  lastHits.push(Date.now());
+  if(lastHits.length > 8) lastHits.shift();
+  hitCountEl.textContent = hitCount;
+  if(isRapidHits()){
+    fallDown();
+  } else {
+    angryReact(hitCount > 2);
+  }
+});
 
-            // Tom repeats after you
-            speak(text);
-        };
+function isRapidHits(){
+  const now = Date.now();
+  const recent = lastHits.filter(t => now - t <= 1000);
+  return recent.length >= 4;
+}
 
-        // --- Simple mouth movement + repeat audio ---
-        function speak(text) {
-            let msg = new SpeechSynthesisUtterance(text);
+function angryReact(stronger=false){
+  char.classList.add('angry');
+  bubble.firstChild && bubble.firstChild.nodeValue;
+  bubble.innerHTML = stronger ? 'Grr! Stop that — I am angry!' : 'Ouch! That hurt!';
+  status.textContent = 'Angry';
+  // small shake
+  char.style.transform = 'translateY(-8px) rotate(-3deg)';
+  setTimeout(()=> char.style.transform = '', 260);
+  setTimeout(()=> { char.classList.remove('angry'); status.textContent='Idle'; bubble.innerHTML='Tap the image to interact.'; }, 1500);
+}
 
-            msg.onstart = () => {
-                tom.classList.add("talking");
-            };
+function fallDown(){
+  fallen = true;
+  bubble.innerHTML = 'Too many hits... I fell down.';
+  status.textContent = 'Fallen';
+  char.classList.add('fallen');
+  // after delay, recover
+  setTimeout(()=> {
+    char.classList.remove('fallen');
+    fallen = false;
+    hitCount = 0; lastHits = [];
+    hitCountEl.textContent = hitCount;
+    bubble.innerHTML = 'I recovered... please be kinder.';
+    status.textContent = 'Idle';
+  }, 4200);
+}
 
-            msg.onend = () => {
-                tom.classList.remove("talking");
-            };
+/* ------------------------------
+   Audio recording & playback (exact same voice)
+   ------------------------------ */
+let mediaStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let lastBlob = null;
+let audioContext = null;
+let analyser = null;
+let audioEl = null;
 
-            window.speechSynthesis.speak(msg);
-        }
-    </script>
+async function ensureMic(){
+  if(mediaStream) return mediaStream;
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    return mediaStream;
+  } catch(err){
+    alert('Microphone access denied or unavailable.');
+    throw err;
+  }
+}
 
+listenBtn.addEventListener('click', async () => {
+  if(fallen) return;
+  if(mediaRecorder && mediaRecorder.state === 'recording'){
+    // stop if already recording
+    mediaRecorder.stop();
+    enterListeningPose(false);
+    return;
+  }
+  try {
+    await startRecording();
+  } catch(e){
+    console.error(e);
+  }
+});
+
+playBtn.addEventListener('click', () => {
+  if(!lastBlob){ alert('No recording available. Press Listen to record.'); return; }
+  playBlob(lastBlob);
+});
+
+resetBtn.addEventListener('click', () => {
+  hitCount = 0; lastHits = []; hitCountEl.textContent = 0;
+  bubble.innerHTML = 'Tap the image to interact. Allow mic to record.'; status.textContent = 'Idle';
+  char.className = 'character-wrap';
+  fallen = false;
+});
+
+/* Recording flow */
+async function startRecording(){
+  status.textContent = 'Preparing mic...';
+  const stream = await ensureMic();
+
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = (e) => { if(e.data && e.data.size) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    lastBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+    bubble.innerHTML = 'Recorded — playing now...';
+    status.textContent = 'Recorded';
+    playBlob(lastBlob);
+  };
+
+  // visual listening
+  enterListeningPose(true);
+  mediaRecorder.start();
+
+  // automatically stop after 5s (keeps UX simple)
+  setTimeout(()=> {
+    if(mediaRecorder && mediaRecorder.state === 'recording'){
+      mediaRecorder.stop();
+      enterListeningPose(false);
+    }
+  }, 5000);
+}
+
+/* Playback with analyzer to produce mouth movement synced to recorded audio */
+async function playBlob(blob){
+  if(!blob) return;
+  // cleanup previous audio
+  if(audioEl){ audioEl.pause(); audioEl.remove(); audioEl = null; }
+
+  audioEl = document.createElement('audio');
+  audioEl.src = URL.createObjectURL(blob);
+  audioEl.autoplay = false;
+  audioEl.crossOrigin = "anonymous";
+  document.body.appendChild(audioEl);
+
+  // AudioContext + analyser setup
+  if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const src = audioContext.createMediaElementSource(audioEl);
+  if(analyser) analyser.disconnect();
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 256;
+  src.connect(analyser);
+  analyser.connect(audioContext.destination);
+
+  status.textContent = 'Playing...';
+  bubble.innerHTML = 'Playing your recorded voice...';
+  // animate mouth based on analyser
+  animateMouth(true);
+
+  // resume context if suspended
+  if(audioContext.state === 'suspended') await audioContext.resume();
+
+  audioEl.play().catch(err => {
+    console.error('Playback error:', err);
+    animateMouth(false);
+    status.textContent = 'Idle';
+  });
+
+  audioEl.onended = () => {
+    animateMouth(false);
+    status.textContent = 'Idle';
+    bubble.innerHTML = 'Playback finished. Tap to interact more.';
+    audioEl.remove();
+    audioEl = null;
+  };
+}
+
+/* animate mouth based on audio analyser levels (auto lip-sync) */
+let rafId = null;
+function animateMouth(on){
+  if(!on){
+    mouth.classList.remove('big','medium','small');
+    mouth.style.transform = '';
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    return;
+  }
+  function frame(){
+    if(!analyser) return;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    let sum = 0;
+    for(let i=0;i<data.length;i++) sum += data[i];
+    const avg = sum / data.length; // 0 - 255
+    // determine mouth size thresholds
+    if(avg < 8) {
+      mouth.classList.remove('medium','big'); mouth.classList.add('small');
+    } else if(avg < 35) {
+      mouth.classList.remove('big','small'); mouth.classList.add('medium');
+    } else {
+      mouth.classList.remove('small','medium'); mouth.classList.add('big');
+    }
+    // subtle iris movement
+    const irisShift = Math.min(6, avg/25);
+    const irL = eyeL.querySelector('.iris'); const irR = eyeR.querySelector('.iris');
+    if(irL) irL.style.transform = `translateX(${irisShift}px)`;
+    if(irR) irR.style.transform = `translateX(${irisShift/1.1}px)`;
+    rafId = requestAnimationFrame(frame);
+  }
+  rafId = requestAnimationFrame(frame);
+}
+
+/* Listening pose (hands near ears + small mouth pulse) */
+function enterListeningPose(on){
+  if(on){
+    char.classList.add('listen');
+    status.textContent = 'Listening';
+    bubble.innerHTML = 'Listening... Speak now (max 5s)';
+    // small blink and mouth pulse
+    blink(eyeL,60); blink(eyeR,60);
+    mouth.classList.add('medium');
+  } else {
+    char.classList.remove('listen');
+    mouth.classList.remove('big','medium','small');
+    status.textContent = 'Idle';
+  }
+}
+
+/* If user clicks the image while recording, stop recording early and play */
+tomImg.addEventListener('click', () => {
+  if(mediaRecorder && mediaRecorder.state === 'recording'){
+    mediaRecorder.stop();
+    enterListeningPose(false);
+  }
+});
+
+/* optional command parsing using WebSpeechRecognition to trigger actions
+   Note: recognizer is only used to show transcribed text and trigger simple commands.
+*/
+let recognizer = null;
+if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognizer = new SR();
+  recognizer.lang = 'en-US';
+  recognizer.interimResults = false;
+  recognizer.maxAlternatives = 1;
+  recognizer.onresult = (ev) => {
+    const txt = ev.results[0][0].transcript;
+    bubble.innerHTML = '<strong>You said:</strong> ' + escapeHtml(txt);
+    status.textContent = 'Idle';
+    if(txt.toLowerCase().includes('jump')) doJump();
+    if(txt.toLowerCase().includes('dance')) doDance();
+  };
+}
+
+/* small actions */
+function doJump(){
+  bubble.innerHTML = 'Jumping!';
+  status.textContent = 'Action';
+  char.style.transition = 'transform 0.25s ease';
+  char.style.transform = 'translateY(-90px)';
+  setTimeout(()=> char.style.transform = '', 500);
+  setTimeout(()=> { status.textContent='Idle'; bubble.innerHTML='Tap the image to interact.'; }, 700);
+}
+
+function doDance(){
+  bubble.innerHTML = 'Dancing!';
+  status.textContent = 'Action';
+  let i=0;
+  const dance = setInterval(()=> {
+    char.style.transform = (i%2===0)? 'rotate(6deg) translateY(-6px)' : 'rotate(-6deg) translateY(-3px)';
+    i++;
+    if(i>6){ clearInterval(dance); char.style.transform=''; status.textContent='Idle'; bubble.innerHTML='Tap the image to interact.'; }
+  }, 220);
+}
+
+/* util */
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* small UX: stop recording if page is hidden */
+document.addEventListener('visibilitychange', ()=> {
+  if(document.hidden && mediaRecorder && mediaRecorder.state === 'recording'){
+    mediaRecorder.stop();
+    enterListeningPose(false);
+  }
+});
+</script>
 </body>
 </html>
