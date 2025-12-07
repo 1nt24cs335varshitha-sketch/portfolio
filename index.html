@@ -1,470 +1,144 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Mini Runner — Play!</title>
+<meta charset="UTF-8">
+<title>Talking & Touch-Reactive Cat</title>
 <style>
-  :root{
-    --bg1:#0f1b2d; --bg2:#1b2b45; --accent:#f49fb1;
-  }
-  html,body{height:100%; margin:0; font-family:system-ui,Segoe UI,Arial; background:linear-gradient(180deg,var(--bg1),var(--bg2)); color:#fff}
-  .wrap{min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:20px}
-  canvas{background: linear-gradient(180deg,#8dd3ff00,#7ec8ff14); border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width:100%; max-width:900px; height:auto; display:block;}
-  .ui{max-width:900px; width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px}
-  .score{font-size:18px; background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:10px;}
-  .controls{font-size:13px; opacity:0.9}
-  .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none}
-  .panel{pointer-events:auto; background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03)); border-radius:12px; padding:18px; text-align:center; color:#001; min-width:280px}
-  button{background:var(--accent); color:#111; border:none; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer}
-  small{display:block; margin-top:8px; color:rgba(0,0,0,0.6)}
-  @media (max-width:520px){ .controls{font-size:12px} }
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #ffeef7;
+        font-family: Arial, sans-serif;
+    }
+
+    #catContainer {
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    /* Cat SVG */
+    svg {
+        width: 220px;
+        transition: transform 0.2s ease;
+    }
+
+    /* Shake animation on touch */
+    .shake {
+        animation: shake 0.4s;
+    }
+
+    @keyframes shake {
+        0% { transform: translateX(0px); }
+        25% { transform: translateX(-8px); }
+        50% { transform: translateX(8px); }
+        75% { transform: translateX(-8px); }
+        100% { transform: translateX(0px); }
+    }
+
+    #catMessage {
+        background: white;
+        padding: 12px 18px;
+        border-radius: 12px;
+        margin-top: 12px;
+        font-size: 18px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+        display: inline-block;
+    }
+
+    input {
+        padding: 10px;
+        font-size: 18px;
+        width: 260px;
+        margin-top: 20px;
+        border-radius: 8px;
+        border: 1px solid #aaa;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 18px;
+        margin-left: 10px;
+        background: #ff4fa7;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="ui">
-      <div class="score">Score: <span id="score">0</span></div>
-      <div class="controls">Controls: ← → (change lane) • ↑ jump • ↓ slide • Swipe on mobile</div>
-    </div>
 
-    <canvas id="game" width="900" height="450"></canvas>
+<div id="catContainer">
+    <!-- Cute CAT SVG -->
+    <svg id="cat" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="60" fill="#ffddc7" stroke="#dba889" stroke-width="3"/>
+        <circle cx="75" cy="90" r="10" fill="white"/>
+        <circle cx="125" cy="90" r="10" fill="white"/>
+        <circle cx="75" cy="93" r="5" fill="black"/>
+        <circle cx="125" cy="93" r="5" fill="black"/>
+        <ellipse cx="100" cy="120" rx="10" ry="6" fill="#ff8c8c"/>
+        <path d="M90 125 Q100 135 110 125" stroke="black" stroke-width="2" fill="none"/>
+        <path d="M50 70 L75 40 L95 75" fill="#ffddc7"/>
+        <path d="M150 70 L125 40 L105 75" fill="#ffddc7"/>
+    </svg>
 
-    <div style="max-width:900px; width:100%; display:flex; justify-content:center; gap:12px">
-      <button id="startBtn">Start Game</button>
-      <button id="pauseBtn">Pause</button>
-      <button id="helpBtn">Help / Restart</button>
-    </div>
-  </div>
+    <div id="catMessage">Touch me or tell me something!</div>
+</div>
 
-  <div class="overlay" id="overlay" style="display:none">
-    <div class="panel" id="panel">
-      <h2 id="panelTitle">Paused</h2>
-      <p id="panelText">Game paused.</p>
-      <button id="panelBtn">Resume</button>
-      <small id="panelHint">Tip: Avoid obstacles by switching lanes or jumping over them.</small>
-    </div>
-  </div>
+<div style="position: absolute; bottom: 40px; text-align: center; width: 100%;">
+    <input id="textInput" placeholder="Type something…">
+    <button onclick="repeatText()">Say</button>
+</div>
 
 <script>
-/* ===== Mini Runner — Canvas game =====
-   - 3 lanes (left, center, right)
-   - Arrow keys: left/right to change lane, up to jump, down to slide
-   - Touch swipe supported (left/right/up/down)
-   - Score increases with distance; speed increases over time
-   - Collisions with obstacles end the run
-*/
+    const cat = document.getElementById("cat");
+    const catMessage = document.getElementById("catMessage");
+    const input = document.getElementById("textInput");
 
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-
-let W = canvas.width, H = canvas.height;
-function resizeCanvasToDisplaySize(){
-  // keep internal size fixed but scale CSS - already set for crispness
-}
-resizeCanvasToDisplaySize();
-
-/* Game variables */
-let running = false;
-let paused = false;
-let score = 0;
-let speed = 4;        // base speed (how fast obstacles move)
-let spawnTimer = 0;
-let spawnInterval = 90; // frames
-let obstacles = [];
-let frame = 0;
-
-/* Lanes x positions */
-const lanes = [W*0.25, W*0.5, W*0.75]; // three lanes
-const groundY = H - 80;
-
-/* Player */
-const player = {
-  lane: 1, // 0-left,1-center,2-right
-  width: 48,
-  height: 64,
-  x: lanes[1] - 24,
-  y: groundY - 64,
-  vy: 0,
-  gravity: 0.9,
-  jumping: false,
-  slide: false,
-  slideTimer: 0
-};
-
-function resetGame(){
-  running = false;
-  paused = false;
-  score = 0;
-  speed = 4;
-  spawnTimer = 0;
-  obstacles = [];
-  frame = 0;
-  player.lane = 1;
-  player.vy = 0;
-  player.jumping = false;
-  player.slide = false;
-  player.slideTimer = 0;
-  updatePlayerX();
-  updateScoreDisplay();
-}
-
-/* Helpers */
-function updatePlayerX(){
-  player.x = lanes[player.lane] - player.width/2;
-}
-
-/* Input handling */
-document.addEventListener('keydown', (e)=>{
-  if(!running) return;
-  if(paused && e.key !== 'Escape') return;
-  if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') changeLane(-1);
-  if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') changeLane(1);
-  if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') startJump();
-  if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') startSlide();
-  if(e.key === 'Escape') togglePause();
-});
-
-function changeLane(dir){
-  player.lane = Math.max(0, Math.min(2, player.lane + dir));
-  updatePlayerX();
-}
-
-function startJump(){
-  if(player.jumping || player.slide) return;
-  player.vy = -14;
-  player.jumping = true;
-}
-
-function startSlide(){
-  if(player.jumping || player.slide) return;
-  player.slide = true;
-  player.slideTimer = 40; // frames
-}
-
-/* Touch (swipe) control for mobile */
-let touchStartX=0, touchStartY=0, touchStartTime=0;
-canvas.addEventListener('touchstart', (e)=>{
-  if(e.touches.length>0){
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchStartTime = Date.now();
-  }
-}, {passive:true});
-canvas.addEventListener('touchend', (e)=>{
-  const dx = (e.changedTouches[0].clientX - touchStartX);
-  const dy = (e.changedTouches[0].clientY - touchStartY);
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if(Math.max(adx,ady) < 20) {
-    // tap = jump
-    startJump();
-    return;
-  }
-  if(adx > ady){
-    if(dx > 0) changeLane(1); else changeLane(-1);
-  } else {
-    if(dy > 0) startSlide(); else startJump();
-  }
-}, {passive:true});
-
-/* Obstacles */
-function spawnObstacle(){
-  const lane = Math.floor(Math.random()*3);
-  const type = Math.random() < 0.7 ? 'block' : 'tall'; // block (can jump), tall (must switch lane)
-  const size = type === 'block' ? {w:40,h:40} : {w:40,h:90};
-  const obst = {
-    lane,
-    x: W + 60,
-    y: groundY - size.h,
-    w: size.w,
-    h: size.h,
-    passed: false,
-    type
-  };
-  obstacles.push(obst);
-}
-
-/* Collision detection */
-function collideRect(a,b){
-  return !(a.x + a.width < b.x || a.x > b.x + b.w || a.y + a.height < b.y || a.y > b.y + b.h);
-}
-
-/* Game loop */
-function update(){
-  if(!running || paused) return;
-
-  frame++;
-  // increase difficulty gradually
-  if(frame % 600 === 0) speed += 0.6;
-  // spawn obstacles
-  spawnTimer++;
-  if(spawnTimer > spawnInterval){
-    spawnTimer = 0;
-    // slightly randomize interval
-    spawnInterval = Math.max(45, Math.floor(70 - Math.min(30, score/200)));
-    spawnObstacle();
-  }
-
-  // update player vertical motion
-  if(player.jumping){
-    player.vy += player.gravity;
-    player.y += player.vy;
-    if(player.y >= groundY - player.height){
-      player.y = groundY - player.height;
-      player.vy = 0;
-      player.jumping = false;
+    // SPEAK FUNCTION
+    function speak(text) {
+        let s = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(s);
     }
-  }
-  // slide timer
-  if(player.slide){
-    player.slideTimer--;
-    if(player.slideTimer <= 0) player.slide = false;
-  }
 
-  // move obstacles
-  for(let i=obstacles.length-1;i>=0;i--){
-    obstacles[i].x -= speed + (score/1000); // small speed boost from score
-    // mark passed for scoring
-    if(!obstacles[i].passed && obstacles[i].x + obstacles[i].w < player.x){
-      obstacles[i].passed = true;
-      score += 10; // pass bonus
-      updateScoreDisplay();
+    // REPEAT TEXT
+    function repeatText() {
+        let text = input.value.trim();
+        if (text === "") return;
+        catMessage.innerText = "You said: " + text;
+        speak(text);
+        input.value = "";
     }
-    // remove off-screen
-    if(obstacles[i].x + obstacles[i].w < -100) obstacles.splice(i,1);
-  }
 
-  // continuous score increase
-  if(frame % 6 === 0){ score += 1; updateScoreDisplay(); }
+    // CAT TOUCH RESPONSE
+    cat.addEventListener("click", () => {
+        cat.classList.add("shake");
 
-  // collision check (AABB)
-  const pBox = {
-    x: player.x,
-    y: player.y + (player.slide ? player.height*0.5 : 0), // sliding reduces height by half visually
-    width: player.width,
-    height: player.slide ? player.height*0.5 : player.height
-  };
+        const replies = [
+            "Meoww! Don't touch my whiskers!",
+            "Purr... That tickles!",
+            "Meow! I like that!",
+            "Hehe! Do it again!",
+            "Purr purr purr…"
+        ];
 
-  for(const o of obstacles){
-    const oBox = {x:o.x, y:o.y, w:o.w, h:o.h};
-    if(collideRect({x:pBox.x, y:pBox.y, width:pBox.width, height:pBox.height}, {x:o.x, y:o.y, w:o.w, h:o.h})){
-      // collision — end game
-      gameOver();
-      return;
-    }
-  }
-}
+        let msg = replies[Math.floor(Math.random() * replies.length)];
+        catMessage.innerText = msg;
+        speak(msg);
 
-/* Drawing */
-function draw(){
-  // clear
-  ctx.clearRect(0,0,W,H);
+        setTimeout(() => {
+            cat.classList.remove("shake");
+        }, 400);
+    });
 
-  // background parallax
-  drawBackground();
-
-  // ground
-  ctx.fillStyle = '#2b3b56';
-  ctx.fillRect(0, groundY, W, H-groundY);
-
-  // lane markers
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-  ctx.lineWidth = 2;
-  for(let i=0;i<3;i++){
-    const lx = lanes[i];
-    ctx.beginPath();
-    ctx.moveTo(lx, groundY);
-    ctx.lineTo(lx, groundY+40);
-    ctx.stroke();
-  }
-
-  // draw player (rounded)
-  drawPlayer();
-
-  // draw obstacles
-  for(const o of obstacles){
-    const color = o.type === 'block' ? '#ff7a7a' : '#ffa64d';
-    ctx.fillStyle = color;
-    roundRect(ctx, o.x, o.y, o.w, o.h, 6, true, false);
-    // small shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.fillRect(o.x+6, groundY, o.w-12, 6);
-  }
-
-  // HUD score (drawn in DOM but also nice on canvas)
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(12,12,160,36);
-  ctx.fillStyle = '#fff';
-  ctx.font = '18px system-ui, Arial';
-  ctx.fillText('Score: ' + score, 20, 36);
-}
-
-function drawBackground(){
-  // sky gradient stripes to give motion
-  const t = frame * 0.6;
-  for(let i=0;i<6;i++){
-    const x = (i*250 - (t % 250));
-    ctx.fillStyle = i%2===0 ? 'rgba(124,58,237,0.06)' : 'rgba(6,182,212,0.04)';
-    ctx.fillRect(x, 0, 140, groundY);
-  }
-  // distant hills
-  ctx.fillStyle = '#12314a';
-  ctx.beginPath();
-  ctx.moveTo(0, groundY);
-  ctx.quadraticCurveTo(W*0.25, groundY-80, W*0.5, groundY-30);
-  ctx.quadraticCurveTo(W*0.75, groundY+20, W, groundY-60);
-  ctx.lineTo(W,0);
-  ctx.lineTo(0,0);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawPlayer(){
-  // body color & simple running animation (bob)
-  const bob = Math.sin(frame/6) * (player.jumping?1:2);
-  const px = player.x, py = player.y + bob;
-  const pW = player.width;
-  const pH = player.height * (player.slide ? 0.55 : 1);
-
-  // shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.beginPath();
-  ctx.ellipse(px + pW/2, groundY + 6, pW*0.55, 8, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // body
-  ctx.fillStyle = '#4ade80';
-  roundRect(ctx, px, py, pW, pH, 8, true, false);
-
-  // face / detail
-  ctx.fillStyle = '#072a1a';
-  ctx.fillRect(px + 10, py + 10, 12, 12);
-  // small stripe
-  ctx.fillStyle = '#d1fae5';
-  ctx.fillRect(px + 8, py + pH - 12, pW - 16, 6);
-}
-
-/* Utilities */
-function roundRect(ctx, x, y, w, h, r, fill, stroke){
-  if (typeof stroke === 'undefined'){ stroke = true; }
-  if (typeof r === 'undefined'){ r = 5; }
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-  if(fill) ctx.fill();
-  if(stroke) ctx.stroke();
-}
-
-function updateScoreDisplay(){
-  document.getElementById('score').textContent = score;
-}
-
-/* Game over / pause / start */
-function gameOver(){
-  running = false;
-  showPanel('Game Over', 'Your score: ' + score, 'Restart', ()=>startGame(true));
-}
-
-function startGame(restart=false){
-  if(restart) resetGame();
-  running = true;
-  paused = false;
-  hidePanel();
-  loop();
-}
-
-function togglePause(){
-  if(!running) return;
-  paused = !paused;
-  if(paused) showPanel('Paused', 'Game is paused', 'Resume', ()=>{ paused=false; hidePanel(); loop(); });
-  else hidePanel();
-}
-
-/* Panel UI */
-const overlay = document.getElementById('overlay');
-const panelTitle = document.getElementById('panelTitle');
-const panelText = document.getElementById('panelText');
-const panelBtn = document.getElementById('panelBtn');
-
-function showPanel(title, text, btnText, btnAction){
-  panelTitle.textContent = title;
-  panelText.textContent = text;
-  panelBtn.textContent = btnText;
-  panelBtn.onclick = ()=>{ btnAction(); };
-  overlay.style.display = 'flex';
-}
-
-function hidePanel(){ overlay.style.display = 'none'; }
-
-/* Buttons */
-document.getElementById('startBtn').onclick = ()=>{
-  if(!running) startGame(true);
-};
-document.getElementById('pauseBtn').onclick = togglePause;
-document.getElementById('helpBtn').onclick = ()=> {
-  if(!running) startGame(true);
-  showPanel('How to play', 'Use ← → to change lanes, ↑ to jump, ↓ to slide. Swipe on mobile to control. Avoid obstacles and survive as long as possible!', 'Got it', ()=>{ hidePanel(); });
-};
-
-/* Main loop with RAF */
-let rafId = null;
-function loop(){
-  if(!running || paused) return;
-  update();
-  draw();
-  rafId = requestAnimationFrame(loop);
-  frame++;
-}
-
-/* Initial draw */
-resetGame();
-draw();
-
-/* Start button helper */
-document.getElementById('startBtn').textContent = 'Start Game';
-
-/* Make sure canvas is crisp on high-DPI */
-function scaleCanvasForDPI(){
-  const dpr = window.devicePixelRatio || 1;
-  if (canvas.width !== Math.floor(canvas.clientWidth * dpr) || canvas.height !== Math.floor(canvas.clientHeight * dpr)) {
-    // preserve CSS size, change internal resolution
-    const rect = canvas.getBoundingClientRect();
-    const w = Math.floor(rect.width * dpr);
-    const h = Math.floor(rect.height * dpr);
-    canvas.width = w; canvas.height = h;
-    W = canvas.width; H = canvas.height;
-  }
-  // recalc lanes & ground
-  lanes[0] = W*0.25; lanes[1] = W*0.5; lanes[2] = W*0.75;
-}
-function onResize(){
-  // Set CSS width/height consistent; keep internal resolution for crispness
-  const containerWidth = Math.min(window.innerWidth - 40, 900);
-  canvas.style.width = containerWidth + 'px';
-  canvas.style.height = (containerWidth * 0.5) + 'px';
-  scaleCanvasForDPI();
-  // recalc ground & player
-  groundY = canvas.height - 80;
-  player.y = groundY - player.height;
-  updatePlayerX();
-  draw();
-}
-window.addEventListener('resize', onResize);
-onResize();
-
-/* ensure game loop runs while running */
-(function steadyLoop(){
-  if(running && !paused){
-    // ensure draw even when RAF paused (fallback)
-    draw();
-  }
-  setTimeout(steadyLoop, 1000/30);
-})();
-
+    // ENTER KEY
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") repeatText();
+    });
 </script>
+
 </body>
 </html>
