@@ -1,144 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Talking & Touch-Reactive Cat</title>
-<style>
-    body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background: #ffeef7;
-        font-family: Arial, sans-serif;
-    }
+    <title>Talking Tom Clone</title>
 
-    #catContainer {
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
+    <style>
+        body {
+            background: linear-gradient(#8ed6ff, #ffffff);
+            text-align: center;
+            padding-top: 40px;
+            font-family: Arial, sans-serif;
+        }
 
-    /* Cat SVG */
-    svg {
-        width: 220px;
-        transition: transform 0.2s ease;
-    }
+        #tom {
+            width: 300px;
+            transition: transform 0.2s;
+        }
 
-    /* Shake animation on touch */
-    .shake {
-        animation: shake 0.4s;
-    }
+        /* Touch/Click Animation */
+        .shake {
+            animation: shake 0.3s;
+        }
 
-    @keyframes shake {
-        0% { transform: translateX(0px); }
-        25% { transform: translateX(-8px); }
-        50% { transform: translateX(8px); }
-        75% { transform: translateX(-8px); }
-        100% { transform: translateX(0px); }
-    }
+        @keyframes shake {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(-10px, 0px); }
+            50% { transform: translate(10px, 0px); }
+            75% { transform: translate(-10px, 0px); }
+            100% { transform: translate(0px, 0px); }
+        }
 
-    #catMessage {
-        background: white;
-        padding: 12px 18px;
-        border-radius: 12px;
-        margin-top: 12px;
-        font-size: 18px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-        display: inline-block;
-    }
+        /* Mouth movement (simple animation) */
+        .talking {
+            filter: brightness(1.2);
+        }
 
-    input {
-        padding: 10px;
-        font-size: 18px;
-        width: 260px;
-        margin-top: 20px;
-        border-radius: 8px;
-        border: 1px solid #aaa;
-    }
+        #speech {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 20px;
+            display: inline-block;
+            min-height: 40px;
+            font-size: 18px;
+            border: 2px solid black;
+        }
 
-    button {
-        padding: 10px 20px;
-        font-size: 18px;
-        margin-left: 10px;
-        background: #ff4fa7;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-</style>
+        #micBtn {
+            margin-top: 30px;
+            padding: 15px 25px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<div id="catContainer">
-    <!-- Cute CAT SVG -->
-    <svg id="cat" viewBox="0 0 200 200">
-        <circle cx="100" cy="100" r="60" fill="#ffddc7" stroke="#dba889" stroke-width="3"/>
-        <circle cx="75" cy="90" r="10" fill="white"/>
-        <circle cx="125" cy="90" r="10" fill="white"/>
-        <circle cx="75" cy="93" r="5" fill="black"/>
-        <circle cx="125" cy="93" r="5" fill="black"/>
-        <ellipse cx="100" cy="120" rx="10" ry="6" fill="#ff8c8c"/>
-        <path d="M90 125 Q100 135 110 125" stroke="black" stroke-width="2" fill="none"/>
-        <path d="M50 70 L75 40 L95 75" fill="#ffddc7"/>
-        <path d="M150 70 L125 40 L105 75" fill="#ffddc7"/>
-    </svg>
+    <h1>Talking Tom</h1>
 
-    <div id="catMessage">Touch me or tell me something!</div>
-</div>
+    <!-- Your uploaded image -->
+    <img id="tom" src="talkingtom.jpg">
 
-<div style="position: absolute; bottom: 40px; text-align: center; width: 100%;">
-    <input id="textInput" placeholder="Type something…">
-    <button onclick="repeatText()">Say</button>
-</div>
+    <div id="speech">Say something…</div>
+    <br>
 
-<script>
-    const cat = document.getElementById("cat");
-    const catMessage = document.getElementById("catMessage");
-    const input = document.getElementById("textInput");
+    <button id="micBtn">🎤 Speak</button>
 
-    // SPEAK FUNCTION
-    function speak(text) {
-        let s = new SpeechSynthesisUtterance(text);
-        speechSynthesis.speak(s);
-    }
+    <script>
+        const tom = document.getElementById("tom");
+        const speechBox = document.getElementById("speech");
+        const micBtn = document.getElementById("micBtn");
 
-    // REPEAT TEXT
-    function repeatText() {
-        let text = input.value.trim();
-        if (text === "") return;
-        catMessage.innerText = "You said: " + text;
-        speak(text);
-        input.value = "";
-    }
+        // --- Click / Touch Reaction ---
+        tom.addEventListener("click", () => {
+            tom.classList.add("shake");
+            setTimeout(() => tom.classList.remove("shake"), 300);
 
-    // CAT TOUCH RESPONSE
-    cat.addEventListener("click", () => {
-        cat.classList.add("shake");
+            speechBox.innerText = "Hey! You touched me!";
+        });
 
-        const replies = [
-            "Meoww! Don't touch my whiskers!",
-            "Purr... That tickles!",
-            "Meow! I like that!",
-            "Hehe! Do it again!",
-            "Purr purr purr…"
-        ];
+        // --- Voice Recognition Setup ---
+        let recognition;
+        if ("webkitSpeechRecognition" in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = "en-US";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+        } else {
+            alert("Your browser does not support voice recognition.");
+        }
 
-        let msg = replies[Math.floor(Math.random() * replies.length)];
-        catMessage.innerText = msg;
-        speak(msg);
+        // --- Start Listening ---
+        micBtn.onclick = () => {
+            if (!recognition) return;
+            speechBox.innerText = "Listening...";
+            recognition.start();
+        };
 
-        setTimeout(() => {
-            cat.classList.remove("shake");
-        }, 400);
-    });
+        // --- When User Speaks ---
+        recognition.onresult = function(event) {
+            let text = event.results[0][0].transcript;
 
-    // ENTER KEY
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") repeatText();
-    });
-</script>
+            speechBox.innerText = "You said: " + text;
+
+            // Tom repeats after you
+            speak(text);
+        };
+
+        // --- Simple mouth movement + repeat audio ---
+        function speak(text) {
+            let msg = new SpeechSynthesisUtterance(text);
+
+            msg.onstart = () => {
+                tom.classList.add("talking");
+            };
+
+            msg.onend = () => {
+                tom.classList.remove("talking");
+            };
+
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
 
 </body>
 </html>
